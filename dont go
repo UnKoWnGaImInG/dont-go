@@ -1,0 +1,144 @@
+["Callback"] = function(Callback)
+            Enabled = Callback
+            if Enabled then
+                spawn(function()
+                    if lplr.Character:FindFirstChild("InventoryFolder").Value:FindFirstChild("balloon") then
+                        usedballoon = true
+                        olddeflate = bedwars["BalloonController"].deflateBalloon
+                        bedwars["BalloonController"].inflateBalloon()
+                        bedwars["BalloonController"].deflateBalloon = function() end
+                    end
+                    
+                    velo = Instance.new("BodyVelocity")
+                    velo.MaxForce = Vector3.new(0,9e9,0)
+                    velo.Parent = lplr.Character:FindFirstChild("HumanoidRootPart")
+                    Connection = uis.InputBegan:Connect(function(input)
+                        if input.KeyCode == Enum.KeyCode.Space then
+                            flyup = true
+                        end
+                        if input.KeyCode == Enum.KeyCode.LeftShift then
+                            flydown = true
+                        end
+                    end)
+                    Connection2 = uis.InputEnded:Connect(function(input)
+                        if input.KeyCode == Enum.KeyCode.Space then
+                            flyup = false
+                        end
+                        if input.KeyCode == Enum.KeyCode.LeftShift then
+                            flydown = false
+                        end
+                    end)
+                    spawn(function()
+                        while task.wait() do
+                            if not Enabled then return end
+                            if Mode["Value"] == "Long" then
+                                for i = 1,7 do
+                                    task.wait()
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,i*1.25+(flyup and 40 or 0)+(flydown and -40 or 0),0)
+                                end
+                                for i = 1,7 do
+                                    task.wait()
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,-i*1+(flyup and 40 or 0)+(flydown and -40 or 0),0)
+                                end
+                            elseif Mode["Value"] == "FunnyOld" then
+                                for i = 1,15 do
+                                    task.wait(0.01)
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,i*1,0)
+                                end
+                            elseif Mode["Value"] == "Funny" then
+                                for i = 2,30,2 do
+                                    task.wait(0.01)
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,25 + i,0)
+                                end
+                            elseif Mode["Value"] == "Moonsoon" then
+                                for i = 1,10 do
+                                    task.wait()
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,-i*0.7,0)
+                                end
+                            elseif Mode["Value"] == "Bounce" then
+                                for i = 1,15 do
+                                    task.wait()
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,i*1.25+(flyup and 40 or 0)+(flydown and -40 or 0),0)
+                                end
+                                for i = 1,15 do
+                                    task.wait()
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,-i*1+(flyup and 40 or 0)+(flydown and -40 or 0),0)
+                                end
+                            elseif Mode["Value"] == "Bounce2" then
+                                for i = 1,15 do
+                                    task.wait()
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,i*1.25+(flyup and 40 or 0)+(flydown and -40 or 0),0)
+                                end
+                                velo.Velocity = Vector3.new(0,0,0)
+                                task.wait(0.05)
+                                for i = 1,15 do
+                                    task.wait()
+                                    if not Enabled then return end
+                                    velo.Velocity = Vector3.new(0,-i*1+(flyup and 40 or 0)+(flydown and -40 or 0),0)
+                                end
+                                task.wait(0.05)
+                                velo.Velocity = Vector3.new(0,0,0)
+                            else
+                                Mode["Value"] = "Long"
+                                lib["ToggleFuncs"]["Fly"](true)
+                                task.wait(0.1)
+                                lib["ToggleFuncs"]["Fly"](true)
+                            end
+                        end
+                    end)
+                end)
+            else
+                velo:Destroy()
+                Connection:Disconnect()
+                Connection2:Disconnect()
+                flyup = false
+                flydown = false
+                if usedballoon == true then
+                    usedballoon = false
+                    bedwars["BalloonController"].deflateBalloon = olddeflate
+                    bedwars["BalloonController"].deflateBalloon()
+                    olddeflate = nil
+                end
+            end
+        end
+    })
+end)
+
+runcode(function()
+    local Expand = {["Value"] = 1}
+    local function getwool()
+        for i,v in pairs(lplr.Character:FindFirstChild("InventoryFolder").Value:GetChildren()) do
+            if string.lower(v.Name):find("wool") then
+                return {
+                    Obj = v,
+                    Amount = v:GetAttribute("Amount")
+                }
+            end
+        end
+        return nil
+    end
+    local function getwoolamount()
+        local value = 0
+        for i,v in pairs(lplr.Character:FindFirstChild("InventoryFolder").Value:GetChildren()) do
+            if string.lower(v.Name):find("wool") then
+                value = value + v:GetAttribute("Amount")
+            end
+        end
+        return value
+    end
+    local function getpos()
+        local primpart = lplr.Character.PrimaryPart
+        local x = math.round(primpart.Position.X/3)
+        local y = math.round(primpart.Position.Y/3)
+        local z = math.round(primpart.Position.Z/3)
+        local realexpand = Expand["Value"] + 1
+        return Vector3.new(x,y-1,z) + (lplr.Character:FindFirstChild("HumanoidRootPart").CFrame.LookVector * math.round(Expand["Value"]))
+    end
